@@ -27,6 +27,14 @@ UserStamp.updater_attribute   = :updater_id
 UserStamp.current_user_method = :current_user
 
 class UserStampSweeper < ActionController::Caching::Sweeper
+  def before_destroy(record)
+    return unless current_user    
+    
+    if record.respond_to?(UserStamp.updater_assignment_method)
+      record.send(UserStamp.updater_assignment_method, current_user.id)
+    end
+  end
+  
   def before_validation(record)
     return unless current_user
     

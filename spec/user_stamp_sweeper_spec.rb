@@ -6,6 +6,32 @@ class PostsController
   end
 end
 
+
+describe UserStampSweeper, "#before_destroy" do
+  before do
+    UserStamp.creator_attribute   = :creator_id
+    UserStamp.updater_attribute   = :updater_id
+    UserStamp.current_user_method = :current_user
+    @sweeper = UserStampSweeper.instance
+    @sweeper.stub!(:controller).and_return(PostsController)
+  end
+  
+  
+  it "should set updater_id if attribute exists" do
+    record = mock('Record', :creator_id= => nil, :updater_id= => nil, :new_record? => :false)
+    record.should_receive(:updater_id=)
+    @sweeper.before_destroy(record)
+  end
+  
+  it "should NOT set updater_id if attribute does not exist" do
+    record = mock('Record', :creator_id= => nil, :updater_id= => nil, :new_record? => :false, :respond_to? => false)
+    record.should_receive(:respond_to?).with("updater_id=").and_return(false)
+    record.should_not_receive(:updater_id=)
+    @sweeper.before_destroy(record)
+  end
+end
+
+
 describe UserStampSweeper, "#before_validation" do
   before do
     UserStamp.creator_attribute   = :creator_id
